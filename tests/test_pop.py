@@ -913,6 +913,12 @@ class Test(unittest.TestCase):
     def test_params_warning(self):
         """Check that a warning is raised with logging if params.ini is passed with BSE_settings or sampling_params"""
         with self.assertLogs("cogsworth", level="WARNING") as cm:
+            p = pop.Population(10, SSE_settings={'stellar_engine': 'sse'}, processes=1,
+                               ini_file=os.path.join(THIS_DIR, "test_data/params.ini"),
+                               use_default_BSE_settings=True)
+        self.assertIn("You have provided both `SSE_settings` and an `ini_file`", cm.output[0])
+
+        with self.assertLogs("cogsworth", level="WARNING") as cm:
             p = pop.Population(10, use_default_BSE_settings=True, processes=1,
                            ini_file=os.path.join(THIS_DIR, "test_data/params.ini"),
                            sampling_params={"qmin": 0.5})
