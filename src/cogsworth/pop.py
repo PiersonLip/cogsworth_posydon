@@ -208,7 +208,7 @@ class Population():
         self.__citations__ = ["cogsworth", "cosmic", "gala"]
 
         if ini_file is not None:
-            BSE_settings, _, _, _, sampling_params = parse_inifile(ini_file)
+            BSE_settings, SSE_settings, _, _, _, sampling_params = parse_inifile(ini_file)
 
         self.BSE_settings = get_default_BSE_settings() if use_default_BSE_settings else {}
         self.BSE_settings.update(BSE_settings)
@@ -1026,6 +1026,12 @@ class Population():
             raise ValueError(("You've chosen a binary fraction of 0.0 but set `keep_singles=False` (in "
                                 "self.sampling_params), so you'll draw 0 samples...I don't think you "
                                 "wanted to do that?"))
+        # drop SF_start, SF_duration, and met from sampling_params since these are set
+        # by the initial galaxy sampling and shouldn't be overridden by the user
+        self.sampling_params.pop("SF_start", None)
+        self.sampling_params.pop("SF_duration", None)
+        self.sampling_params.pop("met", None)
+
         self._initial_binaries, self._mass_singles, self._mass_binaries, self._n_singles_req, \
             self._n_bin_req = InitialBinaryTable.sampler(
                 'independent', self.final_kstar1, self.final_kstar2,
