@@ -4,6 +4,12 @@ Full changelog
 
 This page tracks all of the changes that have been made to ``cogsworth``. We follow the standard versioning convention of A.B.C, where C is a patch/bugfix, B is a large bugfix or new feature and A is a major new breaking change. B/C are backwards compatible but A changes may be breaking.
 
+4.0.1
+=====
+
+- Bug fix: SandersBinney2015 lambda functions had incorrect scoping so that their velocity dispersions all used the values from the final bin (inflating heights for most of the disc)
+- Feature: A couple of internal changes to allow for use with COSMIC 4.0. Particularly, ``SSE_settings`` is now a parameter of Population and passed to COSMIC when evolving (allowing for use of METISSE or different stellar engines)
+
 4.0.0
 =====
 
