@@ -2156,7 +2156,7 @@ def concat(*pops):
             final_pop._initial_galaxy += pop._initial_galaxy
 
         # loop through pandas tables that may need to be copied
-        for table in ["_initial_binaries", "_initial_binaries", "_bpp", "_bcm", "_kick_info"]:
+        for table in ["_initial_binaries", "_bpp", "_bcm", "_kick_info"]:
             # only copy if the table exists in the main population
             if getattr(final_pop, table) is not None:
                 # if the table doesn't exist in the new population then raise an error
