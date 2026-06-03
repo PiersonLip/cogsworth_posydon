@@ -10,6 +10,7 @@ This page tracks all of the changes that have been made to ``cogsworth``. We fol
 - Bug fix: SandersBinney2015 lambda functions had incorrect scoping so that their velocity dispersions all used the values from the final bin (inflating heights for most of the disc)
 - Feature: A couple of internal changes to allow for use with COSMIC 4.0. Particularly, ``SSE_settings`` is now a parameter of Population and passed to COSMIC when evolving (allowing for use of METISSE or different stellar engines)
 - Bug fix: Concatenating populations duplicated initial_binaries rows due to a typo, fixed.
+- Bug fix: Concatenating SFHs now properly concatenates the v_x and v_y components if they exist (previously they were ignored and lost in the concatenation)
 
 4.0.0
 =====
