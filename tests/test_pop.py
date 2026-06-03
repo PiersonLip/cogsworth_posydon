@@ -881,11 +881,23 @@ class Test(unittest.TestCase):
             it_worked = False
         self.assertFalse(it_worked)
 
+    def test_stellar_evolution_SSEdict_already_initC(self):
+        """Check that passing a BSEdict when the initC already has those columns raises a warning"""
+        p = pop.Population(10, use_default_BSE_settings=True, processes=1)
+        p.sample_initial_binaries()
+        p.perform_stellar_evolution()
+
+        with self.assertLogs("cogsworth", level="WARNING") as cm:
+            p.perform_stellar_evolution()
+        self.assertIn("You passed settings for SSE (in `Population.SSE_settings`)", cm.output[0])
+
     def test_stellar_evolution_BSEdict_already_initC(self):
         """Check that passing a BSEdict when the initC already has those columns raises a warning"""
         p = pop.Population(10, use_default_BSE_settings=True, processes=1)
         p.sample_initial_binaries()
         p.perform_stellar_evolution()
+
+        p.SSE_settings = {}
 
         with self.assertLogs("cogsworth", level="WARNING") as cm:
             p.perform_stellar_evolution()
@@ -900,6 +912,12 @@ class Test(unittest.TestCase):
 
     def test_params_warning(self):
         """Check that a warning is raised with logging if params.ini is passed with BSE_settings or sampling_params"""
+        with self.assertLogs("cogsworth", level="WARNING") as cm:
+            p = pop.Population(10, SSE_settings={'stellar_engine': 'sse'}, processes=1,
+                               ini_file=os.path.join(THIS_DIR, "test_data/params.ini"),
+                               use_default_BSE_settings=True)
+        self.assertIn("You have provided both `SSE_settings` and an `ini_file`", cm.output[0])
+
         with self.assertLogs("cogsworth", level="WARNING") as cm:
             p = pop.Population(10, use_default_BSE_settings=True, processes=1,
                            ini_file=os.path.join(THIS_DIR, "test_data/params.ini"),

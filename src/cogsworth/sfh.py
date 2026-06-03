@@ -1676,14 +1676,14 @@ class SandersBinney2015(CompositeStarFormationHistory):
             tau_min=self.tau_T, tau_max=(1 - 1e-10) * self.tau_m, tau_m=self.tau_m,
             tau_S=self.tau_S, tau_F=self.tau_F,
             potential=self.potential,
-            df=lambda J: self._generate_df(J=J, component="thick_disc", tau=12 * u.Gyr)
+            df=lambda J: self._generate_df(J=J, component="thick_disc", tau=11 * u.Gyr)
         )
 
         thin_disc_components = [SandersBinney2015Component(
             tau_min=tau_min, tau_max=(1 - 1e-10) * tau_max, tau_m=self.tau_m,
             tau_S=self.tau_S, tau_F=self.tau_F,
             potential=self.potential,
-            df=lambda J: self._generate_df(J=J, component="thin_disc", tau=(tau_min + tau_max) / 2)
+            df=lambda J, tau=(tau_min + tau_max) / 2: self._generate_df(J=J, component="thin_disc", tau=tau)
         ) for tau_min, tau_max in zip(self.time_bin_edges[:-1], self.time_bin_edges[1:])]
 
         thick_disc_frac = 1.0
@@ -2110,7 +2110,7 @@ def concat(*sfhs):
         new_sfh = sfhs[0].copy()
 
         # concatenate the velocity components if they exist
-        for attr in ["_tau", "_Z", "_x", "_y", "_z", "_v_R", "_v_T", "_v_z"]:
+        for attr in ["_tau", "_Z", "_x", "_y", "_z", "_v_R", "_v_T", "_v_z", "_v_x", "_v_y"]:
             if hasattr(sfhs[0], attr) and not getattr(sfhs[0], attr) is None:
                 setattr(new_sfh, attr, np.concatenate([getattr(sfh, attr) for sfh in sfhs]))
 

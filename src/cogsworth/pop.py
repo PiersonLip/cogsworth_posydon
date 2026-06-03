@@ -65,6 +65,9 @@ class Population():
         Maximum evolution time for both COSMIC and Gala, by default 12.0*u.Gyr
     timestep_size : :class:`~astropy.units.Quantity` [time], optional
         Size of timesteps to use in galactic evolution, by default 1*u.Myr
+    SSE_settings : `dict`, optional
+        Any single stellar evolution (SSE) settings to pass to COSMIC, superseded by `ini_file` if provided.
+        By default, assumed to be {'stellar_engine': 'sse'}
     BSE_settings : `dict`, optional
         Any BSE settings to pass to COSMIC, superseded by `ini_file` if provided
     ini_file : `str`, optional
@@ -122,7 +125,7 @@ class Population():
             self, n_binaries, processes=None, final_kstar1=list(range(16)),
             final_kstar2=list(range(16)), sfh_model=None,
             galactic_potential=gp.MilkyWayPotential(version='v2'), v_dispersion=5 * u.km / u.s,
-            max_ev_time=12.0*u.Gyr, timestep_size=1 * u.Myr, BSE_settings={}, ini_file=None,
+            max_ev_time=12.0*u.Gyr, timestep_size=1 * u.Myr, SSE_settings={}, BSE_settings={}, ini_file=None,
             use_default_BSE_settings=False, sampling_params={}, sampling_mask="",
             bcm_default_timestep=None,
             bcm_timestep_conditions=[], store_entire_orbits=True,
@@ -147,6 +150,11 @@ class Population():
             )
 
         if ini_file is not None:
+            if SSE_settings != {}:
+                self._warn(
+                    "You have provided both `SSE_settings` and an `ini_file`. Using ini file and ignoring "
+                    "SSE_settings"
+                )
             if BSE_settings != {}:
                 self._warn(
                     "You have provided both `BSE_settings` and an `ini_file`. Using ini file and ignoring "
@@ -208,7 +216,11 @@ class Population():
         self.__citations__ = ["cogsworth", "cosmic", "gala"]
 
         if ini_file is not None:
-            BSE_settings, _, _, _, sampling_params = parse_inifile(ini_file)
+            BSE_settings, SSE_settings, _, _, _, sampling_params = parse_inifile(ini_file)
+
+        self.SSE_settings = {"stellar_engine": "sse", "path_to_tracks": "",
+                             "path_to_he_tracks": "", "z_accuracy_limit": 1e-2}
+        self.SSE_settings.update(SSE_settings)
 
         self.BSE_settings = get_default_BSE_settings() if use_default_BSE_settings else {}
         self.BSE_settings.update(BSE_settings)
@@ -1026,6 +1038,12 @@ class Population():
             raise ValueError(("You've chosen a binary fraction of 0.0 but set `keep_singles=False` (in "
                                 "self.sampling_params), so you'll draw 0 samples...I don't think you "
                                 "wanted to do that?"))
+        # drop SF_start, SF_duration, and met from sampling_params since these are set
+        # by the initial galaxy sampling and shouldn't be overridden by the user
+        self.sampling_params.pop("SF_start", None)
+        self.sampling_params.pop("SF_duration", None)
+        self.sampling_params.pop("met", None)
+
         self._initial_binaries, self._mass_singles, self._mass_binaries, self._n_singles_req, \
             self._n_bin_req = InitialBinaryTable.sampler(
                 'independent', self.final_kstar1, self.final_kstar2,
@@ -1086,6 +1104,15 @@ class Population():
             warnings.filterwarnings("ignore", message=".*initial binary table is being overwritten.*")
             warnings.filterwarnings("ignore", message=".*to a different value than assumed in the mlwind.*")
 
+            SSEDict = self.SSE_settings
+            if SSEDict != {} and any(col in self.initial_binaries.columns for col in SSEDict.keys()):
+                SSEDict = {}
+                self._warn(
+                    ("You passed settings for SSE (in `Population.SSE_settings`) but your initial binary "
+                     "table already has settings saved in its columns. cogsworth will use the settings found "
+                     "in the table.")
+                )
+
             BSEDict = self.BSE_settings
             if BSEDict != {} and any(col in self.initial_binaries.columns for col in BSEDict.keys()):
                 BSEDict = {}
@@ -1096,8 +1123,8 @@ class Population():
                 )
 
             evolve_kwargs = {
-                "initialbinarytable": self.initial_binaries, "BSEDict": BSEDict, "pool": self.pool,
-                "bpp_columns": self.bpp_columns, "bcm_columns": self.bcm_columns
+                "initialbinarytable": self.initial_binaries, "SSEDict": SSEDict, "BSEDict": BSEDict,
+                "pool": self.pool, "bpp_columns": self.bpp_columns, "bcm_columns": self.bcm_columns,
             }
 
             if self.bcm_timestep_conditions != []:
@@ -2130,7 +2157,7 @@ def concat(*pops):
             final_pop._initial_galaxy += pop._initial_galaxy
 
         # loop through pandas tables that may need to be copied
-        for table in ["_initial_binaries", "_initial_binaries", "_bpp", "_bcm", "_kick_info"]:
+        for table in ["_initial_binaries", "_bpp", "_bcm", "_kick_info"]:
             # only copy if the table exists in the main population
             if getattr(final_pop, table) is not None:
                 # if the table doesn't exist in the new population then raise an error
