@@ -2110,7 +2110,7 @@ def concat(*sfhs):
         new_sfh = sfhs[0].copy()
 
         # concatenate the velocity components if they exist
-        for attr in ["_tau", "_Z", "_x", "_y", "_z", "_v_R", "_v_T", "_v_z"]:
+        for attr in ["_tau", "_Z", "_x", "_y", "_z", "_v_R", "_v_T", "_v_z", "_v_x", "_v_y"]:
             if hasattr(sfhs[0], attr) and not getattr(sfhs[0], attr) is None:
                 setattr(new_sfh, attr, np.concatenate([getattr(sfh, attr) for sfh in sfhs]))
 
