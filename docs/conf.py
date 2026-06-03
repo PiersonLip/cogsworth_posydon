@@ -222,9 +222,9 @@ def linkcode_resolve(domain, info):
     try:
         file, start, end = find_func()
         # stitch together a github link with specific lines
-        filename = "cogsworth/{}.py#L{}-L{}".format(file, start, end)
+        filename = "src/cogsworth/{}.py#L{}-L{}".format(file, start, end)
 
     # if you can't find it in the file then just link to the correct file
     except Exception:
         filename = info['module'].replace('.', '/') + '.py'
-    return "https://github.com/TomWagg/cogsworth/blob/main/{}".format(filename)
+    return f"https://github.com/TomWagg/cogsworth/blob/main/{filename}"
