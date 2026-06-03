@@ -218,7 +218,8 @@ class Population():
         if ini_file is not None:
             BSE_settings, SSE_settings, _, _, _, sampling_params = parse_inifile(ini_file)
 
-        self.SSE_settings = {"stellar_engine": "sse"}
+        self.SSE_settings = {"stellar_engine": "sse", "path_to_tracks": "",
+                             "path_to_he_tracks": "", "z_accuracy_limit": 1e-2}
         self.SSE_settings.update(SSE_settings)
 
         self.BSE_settings = get_default_BSE_settings() if use_default_BSE_settings else {}
