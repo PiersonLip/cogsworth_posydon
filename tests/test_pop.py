@@ -929,4 +929,11 @@ class Test(unittest.TestCase):
                                ini_file=os.path.join(THIS_DIR, "test_data/params.ini"),
                                BSE_settings={"kickflag": 5})
         self.assertIn("You have provided both `BSE_settings` and an `ini_file`", cm.output[0])
-            
+
+    def test_samples_are_unique(self):
+        """Check that the samples are unique"""
+        for nproc in [1, 2]:
+            p = pop.Population(10_000, use_default_BSE_settings=True, processes=nproc)
+            p.sample_initial_binaries()
+
+            self.assertTrue(len(p.initial_binaries) == len(p.initial_binaries.drop_duplicates(subset=["mass_1", "mass_2", "porb", "ecc"])))
