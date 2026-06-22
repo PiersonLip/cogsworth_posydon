@@ -2220,6 +2220,9 @@ def _init_pool(potential, t2, store_all, integrator, integrator_kwargs, max_retr
     _GLOBAL["max_retries"] = max_retries
     _GLOBAL["timestep_multiplier"] = timestep_multiplier
 
+    # ensure seeds are different for each process
+    np.random.seed()
+
 def _orbit_worker(w0, t1, dt, events):      # pragma: no cover
     return integrate_orbit_with_events(
         w0, t1, _GLOBAL["t2"], dt, _GLOBAL["potential"], events, _GLOBAL["store_all"],
