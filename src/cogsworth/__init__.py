@@ -6,7 +6,7 @@ __email__ = "tomjwagg@gmail.com"
 
 _lazy = {
     "kicks", "pop", "events", "classify", "obs", "plot", "sfh", "utils", "hydro", "interop",
-    "Population", "COMPASPopulation", "CITATIONS", "__bibtex__", "__citation__",
+    "Population", "COMPASPopulation", "POSYDONPopulation", "CITATIONS", "__bibtex__", "__citation__",
 }
 
 
@@ -24,4 +24,8 @@ def __getattr__(name):
         from .interop.compas.pop import COMPASPopulation
         globals()["COMPASPopulation"] = COMPASPopulation
         return COMPASPopulation
+    if name == "POSYDONPopulation":
+        from .interop.posydon.pop import POSYDONPopulation
+        globals()["POSYDONPopulation"] = POSYDONPopulation
+        return POSYDONPopulation
     raise AttributeError(f"module 'cogsworth' has no attribute {name!r}")

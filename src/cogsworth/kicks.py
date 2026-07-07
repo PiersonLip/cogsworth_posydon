@@ -137,21 +137,27 @@ def integrate_orbit_with_events(
                 if any(timestep_mask):
                     matching_timesteps = timesteps[timestep_mask]
 
-                    # integrate the orbit over these timesteps
-                    orbit = potential.integrate_orbit(
-                        current_w0, t=matching_timesteps,
-                        Integrator=integrator,
-                        Integrator_kwargs=integrator_kwargs,
-                    )
+                    # if the kick occurs at the first timestep, skip pre-kick integration
+                    if len(matching_timesteps) > 1:
+                        # integrate the orbit over these timesteps
+                        orbit = potential.integrate_orbit(
+                            current_w0, t=matching_timesteps,
+                            Integrator=integrator,
+                            Integrator_kwargs=integrator_kwargs,
+                        )
 
-                    # save the orbit data (minus the last timestep to avoid duplicates)
-                    orbit_data.append(orbit.data[:-1])
+                        # save the orbit data (minus the last timestep to avoid duplicates)
+                        orbit_data.append(orbit.data[:-1])
 
-                    # set new PhaseSpacePosition from the last timestep
-                    current_w0 = orbit[-1]
+                        # set new PhaseSpacePosition from the last timestep
+                        current_w0 = orbit[-1]
 
-                    # adjust the time to the last timestep
-                    time_cursor = matching_timesteps[-1]
+                        # adjust the time to the last timestep
+                        time_cursor = matching_timesteps[-1]
+                    else:           # pragma: no cover
+                        # kick occurs at the start of integration; keep time_cursor at
+                        # the first timestep so post-kick integration stays aligned
+                        time_cursor = matching_timesteps[0]
                 else:           # pragma: no cover
                     # otherwise skip forward to the event
                     time_cursor = t1 + event["tphys"] * u.Myr

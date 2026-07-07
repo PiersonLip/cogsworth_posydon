@@ -1,10 +1,11 @@
 import unittest
 import cogsworth
-from cogsworth import COMPASPopulation
+from cogsworth import COMPASPopulation, POSYDONPopulation
 import os
 import numpy as np
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+POSYDON_TEST_FILE = os.path.join(THIS_DIR, "test_data/posydon_20sample.h5")
 
 
 class Test(unittest.TestCase):
@@ -17,6 +18,10 @@ class Test(unittest.TestCase):
             from cogsworth.interop.compas import pop
             from cogsworth.interop.compas import runner
             from cogsworth.interop.compas import utils
+            from cogsworth.interop import posydon
+            from cogsworth.interop.posydon import file as posydon_file
+            from cogsworth.interop.posydon import pop as posydon_pop
+            from cogsworth.interop.posydon import utils as posydon_utils
         except ImportError:
             self.fail("Failed to import interop modules")
 
@@ -56,7 +61,7 @@ class Test(unittest.TestCase):
         self.assertEqual(compas_pop.n_binaries, 42)
         self.assertEqual(compas_pop.output_directory, os.path.join(THIS_DIR, "test_data/COMPAS_Output_2"))
     
-    def test_creating_COMPASPopulation_from_COMPAS_output(self):
+    def test_creating_COMPASPopulation2_from_COMPAS_output(self):
         """Test that we can create a COMPASPopulation from a COMPAS output directory"""
         compas_pop = COMPASPopulation.from_COMPAS_output(
             os.path.join(THIS_DIR, "test_data/COMPAS_Output_1/COMPAS_Output.h5")
@@ -91,3 +96,37 @@ class Test(unittest.TestCase):
 
         # clean up
         os.remove(grid_filename)
+
+    def test_creating_POSYDONPopulation_from_POSYDON_output(self):
+        """Test that we can create a POSYDONPopulation from a POSYDON population file"""
+        posydon_pop = POSYDONPopulation.from_POSYDON_output(POSYDON_TEST_FILE)
+
+        self.assertEqual(posydon_pop.n_binaries, 20)
+        self.assertEqual(len(posydon_pop.initial_binaries), 20)
+        self.assertGreater(len(posydon_pop.bpp), 20)
+        self.assertIn("natal_kick_1", posydon_pop.initial_binaries.columns)
+
+    def test_POSYDONPopulation_sampling_and_evolution(self):
+        """Test sampling and loading evolution from a POSYDON file"""
+        posydon_pop = POSYDONPopulation(
+            n_binaries=5,
+            posydon_file=POSYDON_TEST_FILE,
+            processes=1,
+            use_default_BSE_settings=True,
+            random_seed=0,
+        )
+        posydon_pop.sample_initial_binaries()
+        posydon_pop.perform_stellar_evolution()
+
+        self.assertEqual(len(posydon_pop.initial_binaries), 5)
+        self.assertGreater(len(posydon_pop.bpp), 5)
+        self.assertTrue(np.all(posydon_pop.final_bpp["mass_1"] > 0))
+
+    def test_POSYDONPopulation_to_Population(self):
+        """Test conversion from POSYDONPopulation to Population"""
+        posydon_pop = POSYDONPopulation.from_POSYDON_output(
+            POSYDON_TEST_FILE, processes=1, use_default_BSE_settings=True
+        )
+        pop = posydon_pop.to_Population()
+        self.assertEqual(len(pop), len(posydon_pop))
+        self.assertTrue(np.all(pop.final_bpp["mass_1"] == posydon_pop.final_bpp["mass_1"]))

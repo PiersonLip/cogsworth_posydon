@@ -258,6 +258,10 @@ class Population():
     def __add__(self, other):
         return concat(self, other)
 
+    def _extra_population_init_kwargs(self):
+        """Return extra constructor keyword arguments for subclass indexing/copying."""
+        return {}
+
     def __getitem__(self, ind):
         # convert any Pandas Series to numpy arrays
         ind = ind.values if isinstance(ind, pd.Series) else ind
@@ -334,7 +338,8 @@ class Population():
             error_file_path=self.error_file_path,
             integrator=self.integrator,
             integrator_kwargs=self.integrator_kwargs,
-            orbit_integration_retry_settings=self.orbit_integration_retry_settings
+            orbit_integration_retry_settings=self.orbit_integration_retry_settings,
+            **self._extra_population_init_kwargs()
         )
         new_pop.n_binaries_match = new_pop.n_binaries
         new_pop.__citations__ = copy(self.__citations__)
