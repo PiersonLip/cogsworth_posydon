@@ -409,10 +409,12 @@ def plot_cartoon_evolution(bpp, bin_num, label_type="long", plot_title="Cartoon 
             contact_adjust = 0.25 if row["contact"] else 1.0
 
             # plot stars offset from the centre
+            # thin black edge in CE so MS stars stay visible
+            ce_edge = {"edgecolors": "black", "linewidths": 0.6} if row["common_envelope"] else {}
             ax.scatter(0 - (offset + off_s) * contact_adjust, total - i,
-                       color=k1["colour"], s=s_base, zorder=10, clip_on=False)
+                       color=k1["colour"], s=s_base, zorder=10, clip_on=False, **ce_edge)
             ax.scatter(0 + (offset + off_s) * contact_adjust, total - i,
-                       color=k2["colour"], s=s_base, zorder=10, clip_on=False)
+                       color=k2["colour"], s=s_base, zorder=10, clip_on=False, **ce_edge)
 
             # annotate the mass (with some extra padding if there's RLOF)
             mass_y_offset = 0.35 if not (row["rlof"] and not row["common_envelope"]) else 0.5
