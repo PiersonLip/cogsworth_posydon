@@ -198,7 +198,7 @@ def _rlof_path(centre, width, height, m=1.5, flip=False):
 def plot_cartoon_evolution(bpp, bin_num, label_type="long", plot_title="Cartoon Binary Evolution",
                            y_sep_mult=1.5, offset=0.2, s_base=1000,
                            time_fs_mult=1.0, mass_fs_mult=1.0, kstar_fs_mult=1.0,
-                           porb_fs_mult=1.0, label_fs_mult=1.0,
+                           porb_fs_mult=1.0, label_fs_mult=1.0, star_edge=False,
                            fig=None, ax=None, show=True):    # pragma: no cover
     """Plot COSMIC bpp output as a cartoon evolution
 
@@ -228,6 +228,10 @@ def plot_cartoon_evolution(bpp, bin_num, label_type="long", plot_title="Cartoon 
         Multiplier for the porb annotation fontsize
     label_fs_mult : `float`, optional
         Multiplier for the evolution label fontsize
+    star_edge : `bool`, optional
+        If True, draw a thin black edge on every star. If False (default), only
+        stars in a common envelope get an edge (so they stay visible on the
+        orange envelope fill).
     fig : :class:`~matplotlib.pyplot.figure`, optional
         Figure on which to plot, by default will create a new one
     ax : :class:`~matplotlib.pyplot.axis`, optional
@@ -384,8 +388,9 @@ def plot_cartoon_evolution(bpp, bin_num, label_type="long", plot_title="Cartoon 
         # if either star is a massless remnant then we're just dealing with a single star now
         if mr_1 or mr_2:
             # plot the star centrally and a little larger
+            edge = {"edgecolors": "black", "linewidths": 0.6} if (star_edge or row["common_envelope"]) else {}
             ax.scatter(0, total - i, color=k1["colour"] if mr_2 else k2["colour"],
-                       s=s_base * 1.5, clip_on=False)
+                       s=s_base * 1.5, clip_on=False, **edge)
 
             # label its stellar type if (a) it changed or (b) we're at the start/end of evolution
             if (k1 != pk1 and not mr_1) or (k2 != pk2 and not mr_2) or et_ind in [1, 10]:
@@ -409,12 +414,12 @@ def plot_cartoon_evolution(bpp, bin_num, label_type="long", plot_title="Cartoon 
             contact_adjust = 0.25 if row["contact"] else 1.0
 
             # plot stars offset from the centre
-            # thin black edge in CE so MS stars stay visible
-            ce_edge = {"edgecolors": "black", "linewidths": 0.6} if row["common_envelope"] else {}
+            # thin black edge in CE (or for all stages if star_edge) so pale stars stay visible
+            edge = {"edgecolors": "black", "linewidths": 0.6} if (star_edge or row["common_envelope"]) else {}
             ax.scatter(0 - (offset + off_s) * contact_adjust, total - i,
-                       color=k1["colour"], s=s_base, zorder=10, clip_on=False, **ce_edge)
+                       color=k1["colour"], s=s_base, zorder=10, clip_on=False, **edge)
             ax.scatter(0 + (offset + off_s) * contact_adjust, total - i,
-                       color=k2["colour"], s=s_base, zorder=10, clip_on=False, **ce_edge)
+                       color=k2["colour"], s=s_base, zorder=10, clip_on=False, **edge)
 
             # annotate the mass (with some extra padding if there's RLOF)
             mass_y_offset = 0.35 if not (row["rlof"] and not row["common_envelope"]) else 0.5
