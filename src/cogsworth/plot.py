@@ -384,7 +384,8 @@ def plot_cartoon_evolution(bpp, bin_num, label_type="long", plot_title="Cartoon 
         # if either star is a massless remnant then we're just dealing with a single star now
         if mr_1 or mr_2:
             # plot the star centrally and a little larger
-            ax.scatter(0, total - i, color=k1["colour"] if mr_2 else k2["colour"], s=s_base * 1.5)
+            ax.scatter(0, total - i, color=k1["colour"] if mr_2 else k2["colour"],
+                       s=s_base * 1.5, clip_on=False)
 
             # label its stellar type if (a) it changed or (b) we're at the start/end of evolution
             if (k1 != pk1 and not mr_1) or (k2 != pk2 and not mr_2) or et_ind in [1, 10]:
@@ -409,9 +410,9 @@ def plot_cartoon_evolution(bpp, bin_num, label_type="long", plot_title="Cartoon 
 
             # plot stars offset from the centre
             ax.scatter(0 - (offset + off_s) * contact_adjust, total - i,
-                       color=k1["colour"], s=s_base, zorder=10)
+                       color=k1["colour"], s=s_base, zorder=10, clip_on=False)
             ax.scatter(0 + (offset + off_s) * contact_adjust, total - i,
-                       color=k2["colour"], s=s_base, zorder=10)
+                       color=k2["colour"], s=s_base, zorder=10, clip_on=False)
 
             # annotate the mass (with some extra padding if there's RLOF)
             mass_y_offset = 0.35 if not (row["rlof"] and not row["common_envelope"]) else 0.5
@@ -485,6 +486,11 @@ def plot_cartoon_evolution(bpp, bin_num, label_type="long", plot_title="Cartoon 
 
     # clear off any x-ticks and axes
     ax.set_xlim(-1.5, 1.5)
+    # Pad figure to prevent top/bottom from getting cut off, especially in short figures
+    y_top = total + 0.75
+    y_bottom = total - (len(df) - 1) * y_sep_mult
+    pad = 0.9
+    ax.set_ylim(y_bottom - pad, y_top + pad)
     ax.set_xticks([])
     ax.axis("off")
 
