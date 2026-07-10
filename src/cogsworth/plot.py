@@ -349,6 +349,9 @@ def plot_cartoon_evolution(bpp, bin_num, label_type="long", plot_title="Cartoon 
         et_ind, k1, k2, pk1, pk2 = int(row["evol_type"]), kstar_translator[int(row["kstar_1"])],\
             kstar_translator[int(row["kstar_2"])], kstar_translator[int(row["prev_kstar_1"])],\
             kstar_translator[int(row["prev_kstar_2"])]
+        # drop spaces in ms > .7 label so it fits inside star marker
+        k1, k2, pk1, pk2 = [{**k, "short": k["short"].replace("MS < 0.7", "MS<0.7")}
+                            for k in (k1, k2, pk1, pk2)]
         et = evol_type_translator[et_ind]
 
         if row["sep"] > 0.0:
